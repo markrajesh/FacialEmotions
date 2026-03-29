@@ -179,3 +179,20 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+# ---- Facial Emotions project-specific ----
+# Models downloaded at runtime
+models/emotion/*.onnx
+models/emotion/*.pb
+models/metadata/*.json
+
+# Environment secrets
+.env
+.env.local
+
+# Large fixture media (track by README, not binary)
+assets/fixtures/images/*.jpg
+assets/fixtures/images/*.png
+assets/fixtures/videos/*.mp4
+assets/fixtures/videos/*.avi
+assets/fixtures/videos/*.mov
+assets/fixtures/videos/webcam/*.mp4

@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "facial-emotions"
+version = "0.1.0"
+description = "Local facial emotion detection with genuine-vs-posed analysis"
+requires-python = ">=3.11"
+dependencies = [
+    "gradio>=4.19.0",
+    "opencv-python>=4.9.0",
+    "mediapipe>=0.10.9",
+    "numpy>=1.26.0",
+    "onnxruntime>=1.17.0",
+    "scikit-learn>=1.4.0",
+    "Pillow>=10.2.0",
+]
+
+[project.scripts]
+facial-emotions = "facial_emotions.app:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--tb=short -q"
+
+[tool.setuptools.packages.find]
+where = ["src"]

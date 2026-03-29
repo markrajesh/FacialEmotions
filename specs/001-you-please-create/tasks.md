@@ -11,11 +11,11 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create the Python application folder structure in src/facial_emotions/, tests/, models/, and assets/fixtures/
-- [ ] T002 Initialize dependency and tooling files in requirements.txt, pyproject.toml, and .gitignore
-- [ ] T003 [P] Create the package entry points in src/facial_emotions/__init__.py and src/facial_emotions/app.py
-- [ ] T004 [P] Create baseline configuration scaffolding in src/facial_emotions/config.py and .env.example
-- [ ] T005 [P] Add initial README setup and run instructions in README.md
+- [X] T001 Create the Python application folder structure in src/facial_emotions/, tests/, models/, and assets/fixtures/
+- [X] T002 Initialize dependency and tooling files in requirements.txt, pyproject.toml, and .gitignore
+- [X] T003 [P] Create the package entry points in src/facial_emotions/__init__.py and src/facial_emotions/app.py
+- [X] T004 [P] Create baseline configuration scaffolding in src/facial_emotions/config.py and .env.example
+- [X] T005 [P] Add initial README setup and run instructions in README.md
 
 ---
 
@@ -25,18 +25,18 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T006 Create shared enums and dataclasses in src/facial_emotions/domain/enums.py and src/facial_emotions/domain/models.py
-- [ ] T007 [P] Implement contract result schemas in src/facial_emotions/contracts/results.py
-- [ ] T008 [P] Implement media input validation and path handling utilities in src/facial_emotions/services/media_io.py
-- [ ] T009 [P] Implement face detection service wrapper in src/facial_emotions/services/face_detection.py
-- [ ] T010 [P] Implement landmark extraction and feature engineering in src/facial_emotions/services/landmark_features.py
-- [ ] T011 [P] Implement pre-trained emotion inference wrapper in src/facial_emotions/services/emotion_inference.py
-- [ ] T012 [P] Implement genuine-versus-posed assessment service in src/facial_emotions/services/genuineness_assessment.py
-- [ ] T013 Implement analysis result rendering helpers in src/facial_emotions/services/overlay_renderer.py
-- [ ] T014 Implement shared image and frame assembly logic in src/facial_emotions/pipelines/base_pipeline.py
-- [ ] T015 Configure shared pytest fixtures and media samples in tests/conftest.py, assets/fixtures/images/, and assets/fixtures/videos/
-- [ ] T016 Document dataset provenance, licensing, preprocessing, privacy, consent, and ethical-use constraints in README.md and specs/001-you-please-create/quickstart.md
-- [ ] T017 Implement held-out evaluation dataset preparation and benchmark support in src/facial_emotions/services/evaluation.py and tests/conftest.py
+- [X] T006 Create shared enums and dataclasses in src/facial_emotions/domain/enums.py and src/facial_emotions/domain/models.py
+- [X] T007 [P] Implement contract result schemas in src/facial_emotions/contracts/results.py
+- [X] T008 [P] Implement media input validation and path handling utilities in src/facial_emotions/services/media_io.py
+- [X] T009 [P] Implement face detection service wrapper in src/facial_emotions/services/face_detection.py
+- [X] T010 [P] Implement landmark extraction and feature engineering in src/facial_emotions/services/landmark_features.py
+- [X] T011 [P] Implement pre-trained emotion inference wrapper in src/facial_emotions/services/emotion_inference.py
+- [X] T012 [P] Implement genuine-versus-posed assessment service in src/facial_emotions/services/genuineness_assessment.py
+- [X] T013 Implement analysis result rendering helpers in src/facial_emotions/services/overlay_renderer.py
+- [X] T014 Implement shared image and frame assembly logic in src/facial_emotions/pipelines/base_pipeline.py
+- [X] T015 Configure shared pytest fixtures and media samples in tests/conftest.py, assets/fixtures/images/, and assets/fixtures/videos/
+- [X] T016 Document dataset provenance, licensing, preprocessing, privacy, consent, and ethical-use constraints in README.md and specs/001-you-please-create/quickstart.md
+- [X] T017 Implement held-out evaluation dataset preparation and benchmark support in src/facial_emotions/services/evaluation.py and tests/conftest.py
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -52,22 +52,22 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T018 [P] [US1] Create contract tests for image analysis output in tests/contract/test_image_analysis_contract.py
-- [ ] T019 [P] [US1] Create integration tests for single-image emotion detection in tests/integration/test_image_pipeline.py
-- [ ] T020 [P] [US1] Create unit tests for emotion inference service behavior in tests/unit/test_emotion_inference.py
-- [ ] T021 [P] [US1] Create unit tests for genuine assessment heuristics in tests/unit/test_genuineness_assessment.py
-- [ ] T062 [P] [US1] Create static-image latency validation for the under-2-second target in tests/integration/test_image_performance.py
-- [ ] T063 [P] [US1] Create image input boundary tests for supported and out-of-range sizes in tests/integration/test_image_input_boundaries.py
-- [ ] T022 [US1] Approval gate: review and approve failing US1 tests before implementation begins in Phase 3
+- [X] T018 [P] [US1] Create contract tests for image analysis output in tests/contract/test_image_analysis_contract.py
+- [X] T019 [P] [US1] Create integration tests for single-image emotion detection in tests/integration/test_image_pipeline.py
+- [X] T020 [P] [US1] Create unit tests for emotion inference service behavior in tests/unit/test_emotion_inference.py
+- [X] T021 [P] [US1] Create unit tests for genuine assessment heuristics in tests/unit/test_genuineness_assessment.py
+- [X] T062 [P] [US1] Create static-image latency validation for the under-2-second target in tests/integration/test_image_performance.py
+- [X] T063 [P] [US1] Create image input boundary tests for supported and out-of-range sizes in tests/integration/test_image_input_boundaries.py
+- [X] T022 [US1] Approval gate: review and approve failing US1 tests before implementation begins in Phase 3
 
 ### Implementation for User Story 1
 
-- [ ] T023 [US1] Implement the image analysis pipeline in src/facial_emotions/pipelines/image_pipeline.py
-- [ ] T024 [US1] Implement image-specific request assembly and response mapping in src/facial_emotions/services/image_analysis_service.py
-- [ ] T025 [US1] Implement the image upload and prediction UI flow in src/facial_emotions/ui/gradio_app.py
-- [ ] T026 [US1] Connect the application entry point to the image workflow in src/facial_emotions/app.py
-- [ ] T027 [US1] Add image analysis fixture metadata for known outcomes in assets/fixtures/images/README.md
-- [ ] T028 [US1] Implement per-emotion accuracy benchmark tests in tests/integration/test_accuracy_benchmark.py and connect them to src/facial_emotions/services/evaluation.py
+- [X] T023 [US1] Implement the image analysis pipeline in src/facial_emotions/pipelines/image_pipeline.py
+- [X] T024 [US1] Implement image-specific request assembly and response mapping in src/facial_emotions/services/image_analysis_service.py
+- [X] T025 [US1] Implement the image upload and prediction UI flow in src/facial_emotions/ui/gradio_app.py
+- [X] T026 [US1] Connect the application entry point to the image workflow in src/facial_emotions/app.py
+- [X] T027 [US1] Add image analysis fixture metadata for known outcomes in assets/fixtures/images/README.md
+- [X] T028 [US1] Implement per-emotion accuracy benchmark tests in tests/integration/test_accuracy_benchmark.py and connect them to src/facial_emotions/services/evaluation.py
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -81,18 +81,18 @@
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T029 [P] [US2] Create contract tests for multi-face image responses in tests/contract/test_multiface_contract.py
-- [ ] T030 [P] [US2] Create integration tests for multi-face image analysis in tests/integration/test_multiface_image_pipeline.py
-- [ ] T031 [P] [US2] Create unit tests for face-to-result alignment in tests/unit/test_face_detection_alignment.py
-- [ ] T032 [US2] Approval gate: review and approve failing US2 tests before implementation begins in Phase 4
+- [X] T029 [P] [US2] Create contract tests for multi-face image responses in tests/contract/test_multiface_contract.py
+- [X] T030 [P] [US2] Create integration tests for multi-face image analysis in tests/integration/test_multiface_image_pipeline.py
+- [X] T031 [P] [US2] Create unit tests for face-to-result alignment in tests/unit/test_face_detection_alignment.py
+- [X] T032 [US2] Approval gate: review and approve failing US2 tests before implementation begins in Phase 4
 
 ### Implementation for User Story 2
 
-- [ ] T033 [US2] Extend face detection and matching logic for multi-face ordering in src/facial_emotions/services/face_detection.py
-- [ ] T034 [US2] Extend landmark and emotion aggregation for multiple faces in src/facial_emotions/pipelines/image_pipeline.py
-- [ ] T035 [US2] Update overlay rendering for per-face annotations in src/facial_emotions/services/overlay_renderer.py
-- [ ] T036 [US2] Update the image UI to present multi-face summaries in src/facial_emotions/ui/gradio_app.py
-- [ ] T037 [US2] Add multi-face image fixtures and expected outputs in assets/fixtures/images/multiface/
+- [X] T033 [US2] Extend face detection and matching logic for multi-face ordering in src/facial_emotions/services/face_detection.py
+- [X] T034 [US2] Extend landmark and emotion aggregation for multiple faces in src/facial_emotions/pipelines/image_pipeline.py
+- [X] T035 [US2] Update overlay rendering for per-face annotations in src/facial_emotions/services/overlay_renderer.py
+- [X] T036 [US2] Update the image UI to present multi-face summaries in src/facial_emotions/ui/gradio_app.py
+- [X] T037 [US2] Add multi-face image fixtures and expected outputs in assets/fixtures/images/multiface/
 
 **Checkpoint**: At this point, User Stories 1 and 2 should both work independently
 
@@ -106,19 +106,19 @@
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T038 [P] [US4] Create contract tests for video analysis sessions in tests/contract/test_video_analysis_contract.py
-- [ ] T039 [P] [US4] Create integration tests for timestamped video analysis in tests/integration/test_video_pipeline.py
-- [ ] T040 [P] [US4] Create unit tests for frame sampling and timestamp generation in tests/unit/test_video_sampling.py
-- [ ] T041 [US4] Approval gate: review and approve failing US4 tests before implementation begins in Phase 5
+- [X] T038 [P] [US4] Create contract tests for video analysis sessions in tests/contract/test_video_analysis_contract.py
+- [X] T039 [P] [US4] Create integration tests for timestamped video analysis in tests/integration/test_video_pipeline.py
+- [X] T040 [P] [US4] Create unit tests for frame sampling and timestamp generation in tests/unit/test_video_sampling.py
+- [X] T041 [US4] Approval gate: review and approve failing US4 tests before implementation begins in Phase 5
 
 ### Implementation for User Story 4
 
-- [ ] T042 [US4] Implement the video analysis pipeline in src/facial_emotions/pipelines/video_pipeline.py
-- [ ] T043 [US4] Implement video decoding, frame sampling, and timestamp extraction in src/facial_emotions/services/video_analysis_service.py
-- [ ] T044 [US4] Extend contract mapping for aggregated video session results in src/facial_emotions/contracts/results.py
-- [ ] T045 [US4] Add video upload, playback preview, and timestamped results UI in src/facial_emotions/ui/gradio_app.py
-- [ ] T046 [US4] Add representative video fixtures and expected timestamp summaries in assets/fixtures/videos/README.md
-- [ ] T047 [US4] Add video latency and timestamp-alignment validation in tests/integration/test_video_performance.py
+- [X] T042 [US4] Implement the video analysis pipeline in src/facial_emotions/pipelines/video_pipeline.py
+- [X] T043 [US4] Implement video decoding, frame sampling, and timestamp extraction in src/facial_emotions/services/video_analysis_service.py
+- [X] T044 [US4] Extend contract mapping for aggregated video session results in src/facial_emotions/contracts/results.py
+- [X] T045 [US4] Add video upload, playback preview, and timestamped results UI in src/facial_emotions/ui/gradio_app.py
+- [X] T046 [US4] Add representative video fixtures and expected timestamp summaries in assets/fixtures/videos/README.md
+- [X] T047 [US4] Add video latency and timestamp-alignment validation in tests/integration/test_video_performance.py
 
 **Checkpoint**: At this point, User Stories 1, 2, and 4 should be independently functional
 
@@ -132,19 +132,19 @@
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T048 [P] [US3] Create contract tests for webcam frame analysis in tests/contract/test_webcam_contract.py
-- [ ] T049 [P] [US3] Create integration tests for webcam session processing with recorded fixtures in tests/integration/test_webcam_pipeline.py
-- [ ] T050 [P] [US3] Create unit tests for webcam frame throttling and refresh behavior in tests/unit/test_webcam_pipeline.py
-- [ ] T051 [US3] Approval gate: review and approve failing US3 tests before implementation begins in Phase 6
+- [X] T048 [P] [US3] Create contract tests for webcam frame analysis in tests/contract/test_webcam_contract.py
+- [X] T049 [P] [US3] Create integration tests for webcam session processing with recorded fixtures in tests/integration/test_webcam_pipeline.py
+- [X] T050 [P] [US3] Create unit tests for webcam frame throttling and refresh behavior in tests/unit/test_webcam_pipeline.py
+- [X] T051 [US3] Approval gate: review and approve failing US3 tests before implementation begins in Phase 6
 
 ### Implementation for User Story 3
 
-- [ ] T052 [US3] Implement the webcam analysis pipeline in src/facial_emotions/pipelines/webcam_pipeline.py
-- [ ] T053 [US3] Implement webcam capture orchestration and frame throttling in src/facial_emotions/services/webcam_session.py
-- [ ] T054 [US3] Extend the Gradio UI for live webcam streaming and confidence updates in src/facial_emotions/ui/gradio_app.py
-- [ ] T055 [US3] Wire webcam startup and shutdown handling in src/facial_emotions/app.py
-- [ ] T056 [US3] Add recorded webcam test fixtures and expected outputs in assets/fixtures/videos/webcam/
-- [ ] T057 [US3] Add webcam latency validation against the target FPS and per-frame inference thresholds in tests/integration/test_webcam_performance.py
+- [X] T052 [US3] Implement the webcam analysis pipeline in src/facial_emotions/pipelines/webcam_pipeline.py
+- [X] T053 [US3] Implement webcam capture orchestration and frame throttling in src/facial_emotions/services/webcam_session.py
+- [X] T054 [US3] Extend the Gradio UI for live webcam streaming and confidence updates in src/facial_emotions/ui/gradio_app.py
+- [X] T055 [US3] Wire webcam startup and shutdown handling in src/facial_emotions/app.py
+- [X] T056 [US3] Add recorded webcam test fixtures and expected outputs in assets/fixtures/videos/webcam/
+- [X] T057 [US3] Add webcam latency validation against the target FPS and per-frame inference thresholds in tests/integration/test_webcam_performance.py
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -154,11 +154,11 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T058 [P] Finalize end-user setup, model download, and run documentation in README.md and specs/001-you-please-create/quickstart.md
-- [ ] T059 Improve performance logging and configurable thresholds in src/facial_emotions/config.py and src/facial_emotions/app.py
-- [ ] T060 [P] Add unit tests for shared domain models and configuration loading in tests/unit/test_domain_models.py and tests/unit/test_config.py
-- [ ] T061 Validate the quickstart workflow against the implemented application in specs/001-you-please-create/quickstart.md
-- [ ] T064 [P] Document and validate local-only inference assumptions in README.md, specs/001-you-please-create/quickstart.md, and tests/unit/test_config.py
+- [X] T058 [P] Finalize end-user setup, model download, and run documentation in README.md and specs/001-you-please-create/quickstart.md
+- [X] T059 Improve performance logging and configurable thresholds in src/facial_emotions/config.py and src/facial_emotions/app.py
+- [X] T060 [P] Add unit tests for shared domain models and configuration loading in tests/unit/test_domain_models.py and tests/unit/test_config.py
+- [X] T061 Validate the quickstart workflow against the implemented application in specs/001-you-please-create/quickstart.md
+- [X] T064 [P] Document and validate local-only inference assumptions in README.md, specs/001-you-please-create/quickstart.md, and tests/unit/test_config.py
 
 ---
 
