@@ -20,12 +20,23 @@ class EmotionInferenceError(RuntimeError):
     """Raised when the emotion model cannot be loaded or produces invalid output."""
 
 
+# FER+ model output order (8 classes). Contempt is folded into neutral at
+# postprocessing time so the public API always returns 7-class results.
+_FERPLUS_LABEL_ORDER = [
+    "neutral", "happiness", "surprise", "sadness",
+    "anger", "disgust", "fear", "contempt",
+]
+
+
 class EmotionInferenceService:
     """Wraps an ONNX emotion classification model.
 
-    The model is expected to:
-    - accept a single 1×1×48×48 or 1×3×224×224 float32 tensor (auto-detected)
-    - output a 1×7 softmax probability vector matching EMOTION_LABELS order
+    Supports:
+    - FER-2013-style models: 1×1×48×48 or 1×3×224×224 input, 7-class output
+      matching EMOTION_LABELS order
+    - FER+ models (e.g. emotion-ferplus-8.onnx): 1×1×64×64 input, 8-class
+      output in FER+ label order — automatically remapped to 7 classes
+      (contempt is folded into neutral)
     """
 
     def __init__(self, model_path: Optional[Path] = None) -> None:
@@ -96,6 +107,10 @@ class EmotionInferenceService:
         exp_s = np.exp(scores - scores.max())
         probs = exp_s / exp_s.sum()
 
+        # If the model has 8 outputs (FER+ format), remap to our 7-class labels
+        if len(probs) == 8:
+            probs = self._remap_ferplus_to_7class(probs)
+
         top_idx = int(np.argmax(probs))
         labels = config.EMOTION_LABELS
         top_label = EmotionLabel(labels[top_idx])
@@ -107,6 +122,22 @@ class EmotionInferenceService:
             confidence=round(float(probs[top_idx]), 4),
             top_k_scores=top_k,
         )
+
+    def _remap_ferplus_to_7class(self, probs_8: np.ndarray) -> np.ndarray:
+        """Map 8-class FER+ output to our 7 EMOTION_LABELS.
+
+        'contempt' probability is folded into 'neutral' since there is no
+        contempt class in FER-2013 and the two expressions share low-arousal
+        characteristics.
+        """
+        labels = config.EMOTION_LABELS
+        label_to_idx = {lbl: i for i, lbl in enumerate(labels)}
+        probs_7 = np.zeros(len(labels), dtype=np.float32)
+        for ferplus_idx, ferplus_label in enumerate(_FERPLUS_LABEL_ORDER):
+            target = ferplus_label if ferplus_label != "contempt" else "neutral"
+            if target in label_to_idx:
+                probs_7[label_to_idx[target]] += probs_8[ferplus_idx]
+        return probs_7
 
     def predict(
         self,
