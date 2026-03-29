@@ -15,8 +15,8 @@ Build a local Python 3.11 application with a simple Gradio UI that analyzes imag
 **Testing**: pytest for unit, contract, and integration tests; fixed image and video fixtures for reproducible media tests  
 **Target Platform**: Local Windows-first desktop/laptop execution with webcam support; keep cross-platform compatibility for macOS and Linux where dependencies allow  
 **Project Type**: Single Python application with lightweight browser-based UI  
-**Performance Goals**: Static image analysis under 2 seconds end-to-end; webcam refresh at 10 to 15 analyzed FPS with per-frame inference under 250 ms on mid-range CPU; offline video analysis with timestamped summaries for sampled frames  
-**Constraints**: CPU-first execution, no cloud dependency, support JPEG/PNG/BMP and MP4/AVI/MOV inputs, handle up to 5 faces per frame, provide interpretable genuine-versus-posed reasoning flags, preserve local privacy by keeping processing on-device  
+**Performance Goals**: Static image analysis under 2 seconds end-to-end; webcam refresh at 10 to 15 analyzed FPS with per-frame inference under 250 ms on mid-range CPU; offline video analysis with timestamped summaries for sampled frames; benchmark and report per-emotion accuracy against held-out evaluation data  
+**Constraints**: CPU-first execution, no cloud dependency, support JPEG/PNG/BMP and MP4/AVI/MOV inputs, support images from 224x224 up to 1920x1080 with documented resizing rules, handle up to 5 faces per frame, provide interpretable genuine-versus-posed reasoning flags, preserve local privacy by keeping processing on-device  
 **Scale/Scope**: Single-user research/demo application, one active analysis session at a time, public dataset-backed calibration, short uploaded videos up to roughly 10 minutes for the initial milestone
 
 ## Constitution Check
@@ -26,18 +26,24 @@ Build a local Python 3.11 application with a simple Gradio UI that analyzes imag
 ### Pre-Research Gate Review
 
 - Genuine Emotion Analysis: PASS. The plan explicitly includes landmark-derived features such as mouth curvature, smile symmetry, eye constriction, and cheek raise to support genuine-versus-posed analysis.
-- Dataset Utilization: PASS. The plan uses a public facial-emotion dataset for baseline calibration and requires documented preprocessing and local data handling.
+- Dataset Utilization: PASS. The plan uses a public facial-emotion dataset for baseline calibration and requires documented preprocessing, provenance, privacy, and consent handling.
 - Pre-Trained Models: PASS. Emotion detection is based on a pre-trained model rather than custom end-to-end training.
 - Rule-Based and ML Classifiers: PASS. The first implementation uses interpretable heuristics and leaves room for a lightweight scikit-learn classifier without breaking the contract.
-- Test-Driven Development: PASS. The project structure and quickstart define unit, integration, and contract testing as first-class work.
+- Test-Driven Development: PASS. The project structure and tasks must include test-first sequencing plus explicit approval gates before implementation work begins.
 
 ### Post-Design Gate Review
 
 - Genuine Emotion Analysis: PASS. The data model records landmark-derived features and reasoning flags, and the contract preserves genuineness outputs separately from raw emotion labels.
-- Dataset Utilization: PASS. The design keeps dataset use in offline preparation and evaluation rather than user-session storage.
+- Dataset Utilization: PASS. The design keeps dataset use in offline preparation and evaluation rather than user-session storage and requires preprocessing plus ethical-use documentation.
 - Pre-Trained Models: PASS. The design isolates inference behind a service boundary so model files can be swapped without UI changes.
 - Rule-Based and ML Classifiers: PASS. The design supports both rule-based scoring and optional classifier-backed assessment through the same assessment schema.
-- Test-Driven Development: PASS. Contract, unit, and integration test layers are reflected in the proposed source structure.
+- Test-Driven Development: PASS. Contract, unit, and integration test layers are reflected in the proposed source structure, and implementation phases must wait for explicit approval of failing tests.
+
+### Required Compliance Work
+
+- Document dataset provenance, preprocessing, privacy, consent, and ethical-use constraints before calibration begins.
+- Benchmark emotion accuracy on held-out evaluation data and record whether each supported class meets the target.
+- Add approval gates after test authoring for each user story before implementation starts.
 
 ## Project Structure
 
@@ -67,14 +73,20 @@ src/
     │   ├── enums.py
     │   └── models.py
     ├── pipelines/
+    │   ├── base_pipeline.py
     │   ├── image_pipeline.py
     │   ├── video_pipeline.py
     │   └── webcam_pipeline.py
     ├── services/
     │   ├── emotion_inference.py
+    │   ├── evaluation.py
     │   ├── face_detection.py
+    │   ├── image_analysis_service.py
     │   ├── genuineness_assessment.py
     │   ├── landmark_features.py
+    │   ├── media_io.py
+    │   ├── video_analysis_service.py
+    │   ├── webcam_session.py
     │   └── overlay_renderer.py
     └── ui/
         └── gradio_app.py
@@ -94,7 +106,7 @@ assets/
     └── videos/
 ```
 
-**Structure Decision**: Use a single Python project with explicit separation between UI, media pipelines, domain models, and inference services. This keeps the implementation simple enough for a student project while still isolating the pre-trained model wrapper and the genuine-expression logic behind clear contracts.
+**Structure Decision**: Use a single Python project with explicit separation between UI, media pipelines, domain models, and inference services. This keeps the implementation simple enough for a student project while still isolating the pre-trained model wrapper, preprocessing logic, benchmark support, and the genuine-expression logic behind clear contracts.
 
 ## Complexity Tracking
 
