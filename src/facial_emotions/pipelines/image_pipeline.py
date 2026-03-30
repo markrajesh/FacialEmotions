@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import uuid
 from typing import Optional
 
@@ -38,22 +39,26 @@ class ImageAnalysisPipeline:
         bgr_image: np.ndarray,
         request_id: Optional[str] = None,
         enable_genuineness: bool = True,
+        original_image: Optional[np.ndarray] = None,
     ) -> ImageAnalysisResult:
-        h, w = bgr_image.shape[:2]
         req_id = request_id or str(uuid.uuid4())
 
-        # 1. Detect faces
+        # Determine which image will carry the final annotation / dimensions
+        annotation_img = bgr_image if original_image is None else original_image
+        out_h, out_w = annotation_img.shape[:2]
+
+        # 1. Detect faces (always on the processing frame)
         face_detections = self._detector.detect(bgr_image)
         if not face_detections:
             return ImageAnalysisResult(
                 request_id=req_id,
-                image_width=w,
-                image_height=h,
+                image_width=out_w,
+                image_height=out_h,
                 faces=[],
-                annotated_image=bgr_image.copy() if self._render_overlay else None,
+                annotated_image=annotation_img.copy() if self._render_overlay else None,
             )
 
-        # 2. Predict emotions
+        # 2. Predict emotions (processing frame + processing-frame coords)
         emotions = self._emotion.predict(bgr_image, face_detections)
         emotion_map = {e.face_id: e for e in emotions}
 
@@ -71,6 +76,14 @@ class ImageAnalysisPipeline:
             genuineness_list = []
         genuine_map = {g.face_id: g for g in genuineness_list}
 
+        # 4b. Remap bbox coordinates to original image space (if downscaled)
+        if original_image is not None:
+            inv_scale_x = original_image.shape[1] / bgr_image.shape[1]
+            inv_scale_y = original_image.shape[0] / bgr_image.shape[0]
+            face_detections = self._remap_detections(
+                face_detections, inv_scale_x, inv_scale_y
+            )
+
         # 5. Build contract results
         face_results = []
         for face in face_detections:
@@ -81,17 +94,36 @@ class ImageAnalysisPipeline:
                 build_face_result(face, emo, genuine_map.get(face.face_id))
             )
 
-        # 6. Render overlay
+        # 6. Render overlay on the annotation image (original dimensions)
         annotated = None
         if self._render_overlay:
             annotated = draw_results(
-                bgr_image, face_detections, emotions, genuineness_list
+                annotation_img, face_detections, emotions, genuineness_list
             )
 
         return ImageAnalysisResult(
             request_id=req_id,
-            image_width=w,
-            image_height=h,
+            image_width=out_w,
+            image_height=out_h,
             faces=face_results,
             annotated_image=annotated,
         )
+
+    @staticmethod
+    def _remap_detections(
+        faces: list,
+        inv_scale_x: float,
+        inv_scale_y: float,
+    ) -> list:
+        """Return new FaceDetection objects with bbox coords mapped to original image space."""
+        from facial_emotions.domain.models import FaceDetection  # avoid circular at module level
+        return [
+            dataclasses.replace(
+                f,
+                bbox_x=round(f.bbox_x * inv_scale_x),
+                bbox_y=round(f.bbox_y * inv_scale_y),
+                bbox_width=round(f.bbox_width * inv_scale_x),
+                bbox_height=round(f.bbox_height * inv_scale_y),
+            )
+            for f in faces
+        ]

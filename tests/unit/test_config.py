@@ -32,9 +32,45 @@ class TestConfigConstants:
         from facial_emotions import config
         assert config.IMAGE_MIN_SIDE > 0
 
-    def test_image_max_width_greater_than_min_side(self):
+    def test_image_min_side_default_is_224(self):
         from facial_emotions import config
-        assert config.IMAGE_MAX_WIDTH > config.IMAGE_MIN_SIDE
+        assert config.IMAGE_MIN_SIDE == 224
+
+    def test_image_processing_ceiling_default_is_4096(self):
+        from facial_emotions import config
+        assert config.IMAGE_PROCESSING_CEILING == 4096
+
+    def test_image_rejection_ceiling_default_is_8192(self):
+        from facial_emotions import config
+        assert config.IMAGE_REJECTION_CEILING == 8192
+
+    def test_image_processing_ceiling_less_than_rejection_ceiling(self):
+        from facial_emotions import config
+        assert config.IMAGE_PROCESSING_CEILING < config.IMAGE_REJECTION_CEILING
+
+    def test_image_processing_ceiling_env_override(self, monkeypatch):
+        import importlib
+        monkeypatch.setenv("IMAGE_PROCESSING_CEILING", "2048")
+        from facial_emotions import config as cfg
+        importlib.reload(cfg)
+        assert cfg.IMAGE_PROCESSING_CEILING == 2048
+        importlib.reload(cfg)  # restore default
+
+    def test_image_rejection_ceiling_env_override(self, monkeypatch):
+        import importlib
+        monkeypatch.setenv("IMAGE_REJECTION_CEILING", "16384")
+        from facial_emotions import config as cfg
+        importlib.reload(cfg)
+        assert cfg.IMAGE_REJECTION_CEILING == 16384
+        importlib.reload(cfg)  # restore default
+
+    def test_image_min_side_env_override(self, monkeypatch):
+        import importlib
+        monkeypatch.setenv("IMAGE_MIN_SIDE", "128")
+        from facial_emotions import config as cfg
+        importlib.reload(cfg)
+        assert cfg.IMAGE_MIN_SIDE == 128
+        importlib.reload(cfg)  # restore default
 
     def test_video_sample_fps_positive(self):
         from facial_emotions import config

@@ -5,6 +5,7 @@ All analysis happens locally — no files are uploaded to any external server.
 
 from __future__ import annotations
 
+import logging
 import os
 from pathlib import Path
 from typing import Tuple
@@ -13,6 +14,8 @@ import cv2
 import numpy as np
 
 from facial_emotions import config
+
+_logger = logging.getLogger(__name__)
 
 SUPPORTED_IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".bmp"}
 SUPPORTED_VIDEO_EXTS = {".mp4", ".avi", ".mov"}
@@ -62,7 +65,8 @@ def get_image_dimensions(img: np.ndarray) -> Tuple[int, int]:
 def validate_image_dimensions(img: np.ndarray) -> np.ndarray:
     """Raise if image is outside the supported size range; otherwise return it unchanged.
 
-    Supported range: 224×224 (minimum on the smaller side) up to 1920×1080.
+    Supported range: IMAGE_MIN_SIDE px minimum on the shorter side,
+    up to IMAGE_REJECTION_CEILING px on the longest side.
     """
     h, w = img.shape[:2]
     min_side = min(w, h)
@@ -70,12 +74,34 @@ def validate_image_dimensions(img: np.ndarray) -> np.ndarray:
         raise MediaIOError(
             f"Image is too small ({w}x{h}). Minimum side must be ≥ {config.IMAGE_MIN_SIDE}px."
         )
-    if w > config.IMAGE_MAX_WIDTH or h > config.IMAGE_MAX_HEIGHT:
+    longest = max(w, h)
+    if longest > config.IMAGE_REJECTION_CEILING:
         raise MediaIOError(
-            f"Image is too large ({w}x{h}). Maximum supported size is "
-            f"{config.IMAGE_MAX_WIDTH}x{config.IMAGE_MAX_HEIGHT}."
+            f"Image is too large ({w}x{h}). "
+            f"Maximum accepted longest side is {config.IMAGE_REJECTION_CEILING}px."
         )
     return img
+
+
+def downscale_to_processing_ceiling(img: np.ndarray) -> tuple[np.ndarray, float]:
+    """Proportionally downscale an image if its longest side exceeds the processing ceiling.
+
+    Returns (frame, scale_factor) where scale_factor is in (0, 1] and equals 1.0
+    when no downscaling was performed (the original array is returned unchanged).
+    """
+    h, w = img.shape[:2]
+    longest = max(w, h)
+    if longest <= config.IMAGE_PROCESSING_CEILING:
+        return img, 1.0
+    scale = config.IMAGE_PROCESSING_CEILING / longest
+    new_w = round(w * scale)
+    new_h = round(h * scale)
+    frame = cv2.resize(img, (new_w, new_h), interpolation=cv2.INTER_AREA)
+    _logger.debug(
+        "Image downscaled for processing: original=%dx%d → frame=%dx%d (scale=%.4f)",
+        w, h, new_w, new_h, scale,
+    )
+    return frame, scale
 
 
 def resize_for_model(img: np.ndarray, target_size: int = 224) -> np.ndarray:

@@ -181,8 +181,9 @@ def analyse(
     # After face_detections obtained, before building results:
     annotation_img = bgr_image
     if original_image is not None:
-        inv_scale = original_image.shape[1] / bgr_image.shape[1]
-        face_detections = self._remap_detections(face_detections, inv_scale)
+        inv_scale_x = original_image.shape[1] / bgr_image.shape[1]
+        inv_scale_y = original_image.shape[0] / bgr_image.shape[0]
+        face_detections = self._remap_detections(face_detections, inv_scale_x, inv_scale_y)
         annotation_img = original_image
 
     # render overlay on annotation_img (not bgr_image)
@@ -194,15 +195,15 @@ def analyse(
 
 @staticmethod
 def _remap_detections(
-    faces: list[FaceDetection], inv_scale: float
+    faces: list[FaceDetection], inv_scale_x: float, inv_scale_y: float
 ) -> list[FaceDetection]:
     return [
         dataclasses.replace(
             f,
-            bbox_x=round(f.bbox_x * inv_scale),
-            bbox_y=round(f.bbox_y * inv_scale),
-            bbox_width=round(f.bbox_width * inv_scale),
-            bbox_height=round(f.bbox_height * inv_scale),
+            bbox_x=round(f.bbox_x * inv_scale_x),
+            bbox_y=round(f.bbox_y * inv_scale_y),
+            bbox_width=round(f.bbox_width * inv_scale_x),
+            bbox_height=round(f.bbox_height * inv_scale_y),
         )
         for f in faces
     ]

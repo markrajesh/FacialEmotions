@@ -72,3 +72,39 @@ class TestImageAnalysisLatency:
         pipeline.analyse(image, request_id="lat-5face")
         elapsed = time.perf_counter() - start
         assert elapsed < IMAGE_ANALYSIS_BUDGET_S
+
+
+class TestDownscalePerformance:
+    """T014 — downscale and full-pipeline timing for large images (US3)."""
+
+    def test_downscale_ceiling_completes_under_200ms(self):
+        """cv2.INTER_AREA downscale of 8192×6144 must complete in under 200 ms."""
+        from facial_emotions.services.media_io import downscale_to_processing_ceiling
+
+        img = np.zeros((6144, 8192, 3), dtype=np.uint8)
+        start = time.perf_counter()
+        _frame, scale_factor = downscale_to_processing_ceiling(img)
+        elapsed = time.perf_counter() - start
+        assert scale_factor < 1.0, "Pre-condition: image should have been downscaled"
+        assert elapsed < 0.2, (
+            f"downscale_to_processing_ceiling took {elapsed:.3f}s, exceeding 200 ms budget"
+        )
+
+    def test_full_pipeline_4k_image_under_2s(self, mock_face_detector, mock_emotion_service):
+        """End-to-end ImageAnalysisService on a 3840×2160 image must stay under 2 s."""
+        from facial_emotions.pipelines.image_pipeline import ImageAnalysisPipeline
+        from facial_emotions.services.image_analysis_service import ImageAnalysisService
+
+        pipeline = ImageAnalysisPipeline(
+            face_detector=mock_face_detector,
+            emotion_service=mock_emotion_service,
+        )
+        service = ImageAnalysisService(pipeline=pipeline)
+        img = np.zeros((2160, 3840, 3), dtype=np.uint8)
+
+        start = time.perf_counter()
+        service.analyse_array(img)
+        elapsed = time.perf_counter() - start
+        assert elapsed < IMAGE_ANALYSIS_BUDGET_S, (
+            f"Full 4K pipeline took {elapsed:.3f}s, exceeding {IMAGE_ANALYSIS_BUDGET_S}s budget"
+        )

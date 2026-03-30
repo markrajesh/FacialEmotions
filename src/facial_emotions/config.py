@@ -48,9 +48,9 @@ VIDEO_MAX_DURATION_S: float = float(os.getenv("VIDEO_MAX_DURATION_S", "600.0"))
 # ---------------------------------------------------------------------------
 # Input image size constraints
 # ---------------------------------------------------------------------------
-IMAGE_MIN_SIDE: int = 224
-IMAGE_MAX_WIDTH: int = 1920
-IMAGE_MAX_HEIGHT: int = 1080
+IMAGE_MIN_SIDE: int = int(os.getenv("IMAGE_MIN_SIDE", "224"))
+IMAGE_PROCESSING_CEILING: int = int(os.getenv("IMAGE_PROCESSING_CEILING", "4096"))
+IMAGE_REJECTION_CEILING: int = int(os.getenv("IMAGE_REJECTION_CEILING", "8192"))
 
 # ---------------------------------------------------------------------------
 # Local-only processing enforcement

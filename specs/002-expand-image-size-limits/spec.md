@@ -33,7 +33,7 @@ A user uploads a photo taken on a modern smartphone or camera (e.g. 4K, 4032×30
 
 1. **Given** an image with width > 1920 px or height > 1080 px, **When** the user submits it for analysis, **Then** the system accepts it, automatically scales it to fit within processing bounds, displays a subtle info notice ("Large image auto-resized for processing"), and returns per-face results.
 2. **Given** a 4K image (3840×2160), **When** analysed, **Then** bounding boxes in the result are expressed relative to the **original** image dimensions so annotations overlay correctly on the source image.
-3. **Given** an image larger than the new maximum ceiling (e.g. 20000×15000 px), **When** submitted, **Then** the system rejects it with a clear, friendly message stating the maximum accepted resolution.
+3. **Given** an image whose longest side exceeds 8192 px (e.g. 9000×7000 px), **When** submitted, **Then** the system rejects it with a clear, friendly message stating the maximum accepted resolution.
 
 ---
 

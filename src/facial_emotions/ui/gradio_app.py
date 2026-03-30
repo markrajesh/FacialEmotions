@@ -53,6 +53,7 @@ def analyse_image(pil_image: Optional[Image.Image]) -> Tuple[Optional[Image.Imag
         return None, "No image provided."
     from facial_emotions.services.media_io import validate_image_dimensions
     from facial_emotions.services.media_io import MediaIOError
+    from facial_emotions.services.media_io import downscale_to_processing_ceiling
 
     bgr = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
     try:
@@ -60,11 +61,25 @@ def analyse_image(pil_image: Optional[Image.Image]) -> Tuple[Optional[Image.Imag
     except MediaIOError as e:
         return pil_image, f"Input validation error: {e}"
 
+    orig_h, orig_w = bgr.shape[:2]
+    frame, scale_factor = downscale_to_processing_ceiling(bgr)
+    frame_h, frame_w = frame.shape[:2]
+
+    notice = (
+        f"> \u2139\ufe0f Large image auto-resized for processing "
+        f"({orig_w}\u00d7{orig_h} \u2192 {frame_w}\u00d7{frame_h}).\n\n"
+        if scale_factor < 1.0
+        else ""
+    )
+
     pipeline = _get_image_pipeline()
-    result = pipeline.analyse(bgr)
+    result = pipeline.analyse(
+        frame,
+        original_image=bgr if scale_factor < 1.0 else None,
+    )
 
     if not result.faces:
-        return pil_image, "No faces detected in the image."
+        return pil_image, notice + "No faces detected in the image."
 
     annotated_rgb = None
     if result.annotated_image is not None:
@@ -81,7 +96,7 @@ def analyse_image(pil_image: Optional[Image.Image]) -> Tuple[Optional[Image.Imag
             f"  Heuristics: {flags}"
         )
 
-    return annotated_rgb or pil_image, "\n\n".join(summary_lines)
+    return annotated_rgb or pil_image, notice + "\n\n".join(summary_lines)
 
 
 # ---------------------------------------------------------------------------
