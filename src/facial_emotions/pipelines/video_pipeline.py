@@ -69,14 +69,17 @@ class VideoAnalysisPipeline:
         video_path: str,
         sample_fps: float = config.VIDEO_SAMPLE_FPS,
     ) -> list[tuple[int, np.ndarray]]:
-        """Return list of (timestamp_ms, bgr_frame) for sampled frames."""
-        from facial_emotions.services.video_analysis_service import sample_frame_timestamps
+        """Return list of (timestamp_ms, bgr_frame) for sampled frames.
 
+        Uses a simple modulo step so this works for any codec, including
+        WebM recordings from Gradio's webcam widget where
+        CAP_PROP_FRAME_COUNT may report 0.
+        """
         cap = cv2.VideoCapture(video_path)
         try:
-            video_fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
-            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-            timestamps = sample_frame_timestamps(total_frames, video_fps, sample_fps)
+            video_fps = cap.get(cv2.CAP_PROP_FPS)
+            if not video_fps or video_fps <= 0:
+                video_fps = 25.0
 
             step = max(1, round(video_fps / sample_fps))
             frames: list[tuple[int, np.ndarray]] = []
@@ -86,7 +89,9 @@ class VideoAnalysisPipeline:
                 ret, frame = cap.read()
                 if not ret:
                     break
-                if frame_idx in range(0, total_frames, step):
+                # Select every N-th frame without relying on total_frames
+                # (CAP_PROP_FRAME_COUNT returns 0 for WebM / some codecs)
+                if frame_idx % step == 0:
                     ts_ms = round(frame_idx / video_fps * 1000)
                     frames.append((ts_ms, frame))
                 frame_idx += 1
@@ -125,12 +130,13 @@ class VideoAnalysisPipeline:
             emotion = emotion_service.predict_single_face(bgr_frame, face)
             emotions.append(emotion)
 
-            lm = landmark_extractor.extract(bgr_frame, face)
+            face_lm_list = landmark_extractor.extract(bgr_frame, [face])
+            lm = face_lm_list[0] if face_lm_list else None
             if lm:
                 landmarks.append(lm)
-            gen = genuineness_service.assess(lm, emotion)
-            if gen:
-                genuineness_results.append(gen)
+                gen_list = genuineness_service.assess([lm], [emotion])
+                if gen_list:
+                    genuineness_results.append(gen_list[0])
 
         frame_domain = FrameAnalysis(
             frame_id=f"frame-{frame_idx:04d}",

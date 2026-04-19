@@ -38,13 +38,17 @@ def _make_webcam_pipeline(num_faces: int = 1):
     mock_emotion = MagicMock()
     mock_landmark = MagicMock()
     mock_genuine = MagicMock()
-    mock_renderer = MagicMock(side_effect=lambda img, faces: img)
+    mock_renderer = MagicMock(side_effect=lambda img, faces, emotions, genuineness: img)
 
     faces = [_face(f"f{i}") for i in range(num_faces)]
     mock_detector.detect.return_value = faces
     mock_emotion.predict_single_face.side_effect = lambda img, face: _emotion(face.face_id)
-    mock_landmark.extract.return_value = None
-    mock_genuine.assess.side_effect = lambda lm, emo: _genuine(emo.face_id) if emo else None
+    mock_landmark.extract.side_effect = lambda img, face_list: [
+        _face(f.face_id) for f in face_list
+    ] if face_list else []
+    mock_genuine.assess.side_effect = lambda lm_list, emo_list: [
+        _genuine(emo.face_id) for emo in emo_list
+    ]
 
     return WebcamAnalysisPipeline(
         face_detector=mock_detector,
@@ -90,7 +94,7 @@ class TestWebcamPipeline:
             emotion_service=MagicMock(),
             landmark_extractor=MagicMock(),
             genuineness_service=MagicMock(),
-            overlay_renderer=MagicMock(side_effect=lambda img, faces: img),
+            overlay_renderer=MagicMock(side_effect=lambda img, faces, emotions, genuineness: img),
         )
         result = pipeline.analyse_frame(np.zeros((240, 320, 3), dtype=np.uint8))
         assert result.faces == []

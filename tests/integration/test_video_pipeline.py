@@ -48,8 +48,12 @@ def _make_pipeline(num_faces: int = 1, num_sampled_frames: int = 3):
     faces = [_make_face(f"f{i}") for i in range(num_faces)]
     mock_detector.detect.return_value = faces
     mock_emotion.predict_single_face.side_effect = lambda img, face: _make_emotion(face.face_id)
-    mock_landmark.extract.return_value = None
-    mock_genuine.assess.side_effect = lambda lm, emo: _make_genuineness(emo.face_id) if emo else None
+    mock_landmark.extract.side_effect = lambda img, face_list: [
+        _make_face(f.face_id) for f in face_list  # return a LandmarkSet stub per face
+    ] if face_list else []
+    mock_genuine.assess.side_effect = lambda lm_list, emo_list: [
+        _make_genuineness(emo.face_id) for emo in emo_list
+    ]
 
     pipeline = VideoAnalysisPipeline(
         face_detector=mock_detector,

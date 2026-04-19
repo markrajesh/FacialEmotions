@@ -42,6 +42,7 @@ class EmotionInferenceService:
     def __init__(self, model_path: Optional[Path] = None) -> None:
         self._model_path = model_path or config.EMOTION_MODEL_PATH
         self._session = None  # lazy-loaded on first predict
+        self._is_ferplus: bool = False  # set to True by _ensure_session for 8-class models
 
     def _ensure_session(self) -> None:
         if self._session is not None:
@@ -61,6 +62,9 @@ class EmotionInferenceService:
         input_meta = self._session.get_inputs()[0]
         self._input_name: str = input_meta.name
         self._input_shape: List[int] = input_meta.shape  # e.g. [1, 1, 48, 48]
+        # FER+ models expect raw [0, 255] float input; standard FER-2013 models expect [0, 1]
+        output_size = self._session.get_outputs()[0].shape[-1]
+        self._is_ferplus: bool = (output_size == 8)
 
     def _preprocess(self, face_crop: np.ndarray) -> np.ndarray:
         """Resize and normalise a face crop to the model's expected input shape."""
@@ -69,15 +73,20 @@ class EmotionInferenceService:
         channels = shape[1] if len(shape) == 4 else 1
 
         resized = cv2.resize(face_crop, (target_w, target_h), interpolation=cv2.INTER_AREA)
+        # FER+ expects raw [0, 255]; standard FER-2013 models expect [0, 1]
+        scale = 1.0 if self._is_ferplus else 1.0 / 255.0
         if channels == 1:
             if len(resized.shape) == 3:
                 resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
-            tensor = resized.astype(np.float32) / 255.0
+            tensor = resized.astype(np.float32) * scale
             tensor = tensor[np.newaxis, np.newaxis, :, :]  # 1×1×H×W
         else:
             if len(resized.shape) == 2:
-                resized = cv2.cvtColor(resized, cv2.COLOR_GRAY2BGR)
-            tensor = resized.astype(np.float32) / 255.0
+                resized = cv2.cvtColor(resized, cv2.COLOR_GRAY2RGB)
+            else:
+                # Models trained on standard datasets expect RGB, not BGR
+                resized = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
+            tensor = resized.astype(np.float32) * scale
             tensor = tensor.transpose(2, 0, 1)[np.newaxis, :, :, :]  # 1×C×H×W
         return tensor
 
@@ -90,7 +99,11 @@ class EmotionInferenceService:
         self._ensure_session()
 
         x, y, bw, bh = face.bbox_x, face.bbox_y, face.bbox_width, face.bbox_height
-        crop = bgr_image[y : y + bh, x : x + bw]
+        # Clamp to image bounds — Haar Cascade can return boxes that touch edges
+        img_h, img_w = bgr_image.shape[:2]
+        x1, y1 = max(x, 0), max(y, 0)
+        x2, y2 = min(x + bw, img_w), min(y + bh, img_h)
+        crop = bgr_image[y1:y2, x1:x2]
         if crop.size == 0:
             return EmotionPrediction(
                 face_id=face.face_id,

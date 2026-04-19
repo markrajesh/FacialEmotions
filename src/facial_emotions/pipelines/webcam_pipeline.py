@@ -62,12 +62,13 @@ class WebcamAnalysisPipeline:
             emotion = emotion_service.predict_single_face(bgr_frame, face)
             emotions.append(emotion)
 
-            lm = landmark_extractor.extract(bgr_frame, face)
+            face_lm_list = landmark_extractor.extract(bgr_frame, [face])
+            lm = face_lm_list[0] if face_lm_list else None
             if lm:
                 landmarks.append(lm)
-            gen = genuineness_service.assess(lm, emotion)
-            if gen:
-                genuineness_results.append(gen)
+                gen_list = genuineness_service.assess([lm], [emotion])
+                if gen_list:
+                    genuineness_results.append(gen_list[0])
 
         frame_domain = FrameAnalysis(
             frame_id=f"webcam-{frame_idx:06d}",
@@ -79,7 +80,7 @@ class WebcamAnalysisPipeline:
         )
         frame_result = build_frame_result(frame_domain)
 
-        annotated = overlay_renderer(bgr_frame, face_detections)
+        annotated = overlay_renderer(bgr_frame, face_detections, emotions, genuineness_results)
 
         return WebcamFrameResult(
             request_id=req_id,

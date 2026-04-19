@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import traceback
 import tempfile
 from pathlib import Path
 from typing import Optional, Tuple
@@ -10,6 +12,8 @@ import cv2
 import gradio as gr
 import numpy as np
 from PIL import Image
+
+_log = logging.getLogger("facial_emotions")
 
 
 # ---------------------------------------------------------------------------
@@ -113,7 +117,10 @@ def analyse_video(video_path: Optional[str]) -> str:
         return f"Error analysing video: {exc}"
 
     if not result.sampled_frames:
-        return "No frames with detected faces found in the video."
+        return (
+            "Could not read any frames from the video file. "
+            "Try re-recording or uploading an MP4 file."
+        )
 
     lines = [
         f"Video analysed: **{result.duration_seconds:.1f}s** | "
@@ -135,22 +142,63 @@ def analyse_video(video_path: Optional[str]) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Webcam handler
+# Webcam handler — live per-frame streaming (no ffmpeg dependency)
 # ---------------------------------------------------------------------------
 
-def analyse_webcam_frame(frame: Optional[np.ndarray]) -> Tuple[Optional[np.ndarray], str]:
+def analyse_webcam_frame(
+    frame: Optional[np.ndarray],
+    last_state: Tuple[Optional[np.ndarray], str],
+) -> Tuple[Optional[np.ndarray], str, Tuple[Optional[np.ndarray], str]]:
+    """Process one live webcam frame.
+
+    Gradio delivers webcam frames as RGB numpy arrays.  The detection
+    pipeline expects BGR, so we convert in before calling the pipeline
+    and convert the annotated result back to RGB before returning.
+
+    When the stream stops Gradio sends frame=None; we return the last
+    valid result so the output is not cleared.
+    """
     if frame is None:
-        return None, "Webcam not active."
-    pipeline = _get_webcam_pipeline()
-    result = pipeline.analyse_frame(frame)
-    annotated = result.annotated_frame if result.annotated_frame is not None else frame
-    if not result.faces:
-        return annotated, "No faces detected."
-    summaries = [
-        f"{f.emotion} ({f.emotion_confidence:.0%}, {f.genuineness_state})"
-        for f in result.faces
-    ]
-    return annotated, "  |  ".join(summaries)
+        # Stream stopped — keep whatever was last displayed
+        return last_state[0], last_state[1], last_state
+
+    try:
+        # Gradio webcam → RGB numpy array; pipeline expects BGR
+        bgr_frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        _log.info(
+            "webcam frame received: shape=%s dtype=%s",
+            bgr_frame.shape,
+            bgr_frame.dtype,
+        )
+
+        pipeline = _get_webcam_pipeline()
+        result = pipeline.analyse_frame(bgr_frame)
+        _log.info("webcam faces detected: %d", len(result.faces))
+
+        # Pipeline annotated frame is BGR — convert back to RGB for Gradio display
+        if result.annotated_frame is not None:
+            annotated = cv2.cvtColor(result.annotated_frame, cv2.COLOR_BGR2RGB)
+        else:
+            annotated = frame  # fall back to original (already RGB)
+
+        if not result.faces:
+            # No face this frame — show current live feed but keep the last known
+            # emotion label so a brief faces=0 frame doesn't wipe the result.
+            prev_label = last_state[1] if last_state[1] else "Scanning for face…"
+            return annotated, prev_label, last_state
+
+        summaries = [
+            f"{f.emotion} ({f.emotion_confidence:.0%}, {f.genuineness_state})"
+            for f in result.faces
+        ]
+        label = "  |  ".join(summaries)
+        _log.info("webcam result: %s", label)
+        new_state = (annotated, label)
+        return annotated, label, new_state
+
+    except Exception:
+        _log.error("webcam handler exception:\n%s", traceback.format_exc())
+        return last_state[0], last_state[1], last_state
 
 
 # ---------------------------------------------------------------------------
@@ -174,7 +222,11 @@ def build_app() -> gr.Blocks:
             )
 
         with gr.Tab("Video"):
-            vid_input = gr.Video(label="Upload Video")
+            vid_input = gr.File(
+                label="Upload Video (MP4 / AVI / MOV)",
+                file_types=[".mp4", ".avi", ".mov"],
+                type="filepath",
+            )
             vid_summary = gr.Markdown()
             vid_btn = gr.Button("Analyse Video")
             vid_btn.click(
@@ -185,13 +237,19 @@ def build_app() -> gr.Blocks:
 
         with gr.Tab("Webcam"):
             with gr.Row():
-                cam_input = gr.Image(sources=["webcam"], streaming=True, label="Webcam")
+                cam_input = gr.Image(
+                    sources=["webcam"],
+                    streaming=True,
+                    type="numpy",
+                    label="Webcam",
+                )
                 cam_output = gr.Image(label="Annotated Frame")
             cam_label = gr.Markdown()
+            cam_state = gr.State(value=(None, ""))
             cam_input.stream(
                 analyse_webcam_frame,
-                inputs=[cam_input],
-                outputs=[cam_output, cam_label],
+                inputs=[cam_input, cam_state],
+                outputs=[cam_output, cam_label, cam_state],
             )
 
     return app

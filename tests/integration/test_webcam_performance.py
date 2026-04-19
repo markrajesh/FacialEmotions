@@ -23,7 +23,7 @@ class TestWebcamLatency:
             emotion_service=MagicMock(),
             landmark_extractor=MagicMock(),
             genuineness_service=MagicMock(),
-            overlay_renderer=MagicMock(side_effect=lambda img, faces: img),
+            overlay_renderer=MagicMock(side_effect=lambda img, faces, emotions, genuineness: img),
         )
         frame = np.zeros((240, 320, 3), dtype=np.uint8)
         start = time.perf_counter()
@@ -40,7 +40,7 @@ class TestWebcamLatency:
             emotion_service=MagicMock(),
             landmark_extractor=MagicMock(),
             genuineness_service=MagicMock(),
-            overlay_renderer=MagicMock(side_effect=lambda img, faces: img),
+            overlay_renderer=MagicMock(side_effect=lambda img, faces, emotions, genuineness: img),
         )
         frame = np.zeros((240, 320, 3), dtype=np.uint8)
         start = time.perf_counter()
