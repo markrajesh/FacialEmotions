@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import logging
+import os
+import shutil
 import traceback
 import tempfile
 from pathlib import Path
@@ -109,12 +111,38 @@ def analyse_image(pil_image: Optional[Image.Image]) -> Tuple[Optional[Image.Imag
 
 def analyse_video(video_path: Optional[str]) -> str:
     if video_path is None:
+        _log.info("analyse_video: no path provided")
         return "No video provided."
+
+    _log.info("analyse_video: received path=%s", video_path)
+    src = Path(video_path)
+    if not src.exists():
+        _log.error("analyse_video: file not found at %s", video_path)
+        return "Video file not found — the upload may have been cleaned up. Please re-upload."
+    _log.info("analyse_video: file size=%d bytes", src.stat().st_size)
+
+    # Copy to a controlled temp path before analysis.  Windows Defender and
+    # shell extensions briefly lock files written to the system temp directory,
+    # causing PermissionError 13 when Gradio's temp dir is used directly.
+    tmp_path: Optional[str] = None
     try:
+        suffix = src.suffix or ".mp4"
+        fd, tmp_path = tempfile.mkstemp(suffix=suffix)
+        os.close(fd)
+        shutil.copy2(str(src), tmp_path)
+        _log.info("analyse_video: working copy at %s", tmp_path)
+
         pipeline = _get_video_pipeline()
-        result = pipeline.analyse(video_path)
+        result = pipeline.analyse(tmp_path)
     except Exception as exc:
+        _log.error("analyse_video error:\n%s", traceback.format_exc())
         return f"Error analysing video: {exc}"
+    finally:
+        if tmp_path:
+            try:
+                Path(tmp_path).unlink(missing_ok=True)
+            except OSError:
+                pass
 
     if not result.sampled_frames:
         return (
@@ -222,10 +250,11 @@ def build_app() -> gr.Blocks:
             )
 
         with gr.Tab("Video"):
-            vid_input = gr.File(
+            vid_input = gr.Video(
+                sources=["upload"],
                 label="Upload Video (MP4 / AVI / MOV)",
-                file_types=[".mp4", ".avi", ".mov"],
-                type="filepath",
+                include_audio=True,
+                format=None,
             )
             vid_summary = gr.Markdown()
             vid_btn = gr.Button("Analyse Video")
